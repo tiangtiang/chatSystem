@@ -50,6 +50,14 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
+	
+	public OutputStreamWriter getWriter(){
+		return inwriter;
+	}
+	
+	public BufferedReader getReader(){
+		return inreader;
+	}
 
 	/**
 	 * 执行程序
@@ -79,7 +87,7 @@ public class Client {
 	}
 
 	/**
-	 * 线程类，用来进行读写操作
+	 * 线程类，用来进行控制台读写操作
 	 * @author yaMin
 	 *
 	 */
