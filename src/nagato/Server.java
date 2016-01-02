@@ -9,7 +9,7 @@ import java.net.ServerSocket;
  *
  */
 public class Server {
-	private final int port = 4371;		//服务器监听端口
+	private final int port = 9999;		//服务器监听端口
 	
 	private ServerSocket server;		//服务器套接字
 	

@@ -45,4 +45,12 @@ public class ServerDb {
 			str.append(key + "\t\t\t" + user.get(key) + "\n");
 		return str.toString();
 	}
+	
+	/**
+	 * 从存储器中移除用户名为name的数据
+	 * @param name 用户名
+	 */
+	public void remove(String name){
+		user.remove(name);
+	}
 }
