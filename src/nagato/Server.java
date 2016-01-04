@@ -11,6 +11,8 @@ import java.net.ServerSocket;
 public class Server {
 	private final int port = 9999;		//服务器监听端口
 	
+	private static int count = 0;
+	
 	private ServerSocket server;		//服务器套接字
 	
 	/**
@@ -21,7 +23,7 @@ public class Server {
 			server = new ServerSocket(port);
 			System.out.println("服务器启动...");
 			while(true){
-				new ServerThread(server.accept());		//创建一个新的服务器线程处理消息
+				new ServerUI(new ServerThread(server.accept(), count++));		//创建一个新的服务器线程处理消息
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

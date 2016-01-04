@@ -1,11 +1,11 @@
-package suzumiya;
+package nagato;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -17,7 +17,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 @SuppressWarnings("serial")
-public class ClientUI extends JFrame {
+public class ServerUI extends JFrame {
+
 	private JPanel background; // 背景
 	private JPanel unChangedArea; // 不可变区域
 	private JPanel changedArea; // 可变区域
@@ -27,10 +28,12 @@ public class ClientUI extends JFrame {
 	private JButton sendButton; // 发送按钮
 	private JScrollPane jsp, jsp1; // 滚动条
 
-	private Client client; // 客户端后台
-	private OutputStreamWriter writer; // 向服务器中写入数据的数据流
+	public ServerThread server; // 服务器线程
+	public BufferedWriter bwriter; // 写入流
+	public BufferedReader breader; // 读取流
 
-	public ClientUI() {
+	public ServerUI(ServerThread server) {
+		super("服务器线程");
 		background = new JPanel();
 		unChangedArea = new JPanel();
 		changedArea = new JPanel();
@@ -43,11 +46,14 @@ public class ClientUI extends JFrame {
 		jsp1 = new JScrollPane(showArea);
 
 		init();
-		initClient();
+
+		initServer(server);
 	}
 
+	/**
+	 * 初始化界面
+	 */
 	public void init() {
-		setTitle("客户端");
 		background.setLayout(new BoxLayout(background, BoxLayout.Y_AXIS));
 		unChangedArea.setLayout(new BoxLayout(unChangedArea, BoxLayout.X_AXIS));
 
@@ -64,11 +70,30 @@ public class ClientUI extends JFrame {
 		changedArea.add(sendButton);
 		changedArea.add(Box.createHorizontalStrut(20));
 
-		sendButton.addActionListener(new sendListener());
-
 		background.add(unChangedArea);
 		background.add(changedArea);
 		background.add(Box.createHorizontalStrut(5));
+
+		sendButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				String text = testArea.getText();
+				if (!text.equals("")) {
+					try {
+						bwriter.write(text + "\n");
+						bwriter.flush();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					testArea.setText("");
+				}
+				addString("服务器：" + text);
+			}
+		});
+
 		this.add(background);
 		setSize(550, 450);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -76,88 +101,45 @@ public class ClientUI extends JFrame {
 
 	}
 
-	private void initClient() {
-		client = new Client();
-		writer = client.getWriter();
-		new ReaderThread(client.getReader());
-		showArea.setText("客户端已启动...");
+	/**
+	 * 初始化服务器线程
+	 * 
+	 * @param server
+	 */
+	public void initServer(ServerThread server) {
+		this.server = server;
+		breader = server.getReader();
+		bwriter = server.getwriter();
+		showArea.setText("服务器运行中...");
+
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				while (true) {
+					try {
+						addString("客户端：" + breader.readLine());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						break;
+					}
+				}
+			}
+
+		}).start();
 	}
 
 	/**
-	 * 向通话记录中添加数据
+	 * 添加纪录
 	 * 
 	 * @param result
-	 *            数据
 	 */
 	private void addString(String result) {
 		StringBuilder text = new StringBuilder(showArea.getText());
 		text.append("\n");
 		text.append(result);
 		showArea.setText(text.toString());
-	}
-
-	/**
-	 * 按钮发送事件监听器
-	 * 
-	 * @author yaMin
-	 *
-	 */
-	class sendListener implements ActionListener {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
-			send();
-		}
-
-		/**
-		 * 向服务器端发送数据
-		 */
-		void send() {
-			String text = testArea.getText(); // 显示的内容
-			if (!text.equals("")) {
-				try {
-					writer.write(text + "\n");
-					writer.flush();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				addString("客户端：" + text);
-			}
-			testArea.setText("");
-		}
-
-	}
-
-	/**
-	 * 从服务器中读取数据并显示到聊天记录中
-	 * 
-	 * @author yaMin
-	 *
-	 */
-	class ReaderThread implements Runnable {
-		private BufferedReader reader;
-
-		public ReaderThread(BufferedReader reader) {
-			this.reader = reader;
-			new Thread(this).start();
-		}
-
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			while (true) {
-				try {
-					addString("服务器："+reader.readLine());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					// client.close();
-					break;
-				}
-			}
-		}
-
 	}
 
 }
