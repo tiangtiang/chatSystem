@@ -16,6 +16,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import protocol.Protocol;
+
 @SuppressWarnings("serial")
 public class ClientUI extends JFrame {
 	private JPanel background; // 背景
@@ -29,6 +31,10 @@ public class ClientUI extends JFrame {
 
 	private Client client; // 客户端后台
 	private OutputStreamWriter writer; // 向服务器中写入数据的数据流
+	
+	private String userName = "客户端";
+	
+	private Protocol pro;
 
 	public ClientUI() {
 		background = new JPanel();
@@ -77,6 +83,7 @@ public class ClientUI extends JFrame {
 	}
 
 	private void initClient() {
+		pro = new Protocol();
 		client = new Client();
 		writer = client.getWriter();
 		new ReaderThread(client.getReader());
@@ -117,13 +124,14 @@ public class ClientUI extends JFrame {
 			String text = testArea.getText(); // 显示的内容
 			if (!text.equals("")) {
 				try {
-					writer.write(text + "\n");
+					String temp = pro.format(userName, text);
+					writer.write(temp);
 					writer.flush();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				addString("客户端：" + text);
+				addString(pro.translate(pro.format(userName, text)));
 			}
 			testArea.setText("");
 		}
@@ -149,7 +157,7 @@ public class ClientUI extends JFrame {
 			// TODO Auto-generated method stub
 			while (true) {
 				try {
-					addString("服务器："+reader.readLine());
+					addString(pro.translate(reader.readLine()));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					// client.close();

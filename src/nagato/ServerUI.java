@@ -16,6 +16,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import protocol.Protocol;
+
 @SuppressWarnings("serial")
 public class ServerUI extends JFrame {
 
@@ -31,6 +33,10 @@ public class ServerUI extends JFrame {
 	public ServerThread server; // 服务器线程
 	public BufferedWriter bwriter; // 写入流
 	public BufferedReader breader; // 读取流
+	
+	private String userName = "服务器";
+	
+	private Protocol pro;
 
 	public ServerUI(ServerThread server) {
 		super("服务器线程");
@@ -82,7 +88,7 @@ public class ServerUI extends JFrame {
 				String text = testArea.getText();
 				if (!text.equals("")) {
 					try {
-						bwriter.write(text + "\n");
+						bwriter.write(pro.format(userName, text));
 						bwriter.flush();
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
@@ -90,7 +96,7 @@ public class ServerUI extends JFrame {
 					}
 					testArea.setText("");
 				}
-				addString("服务器：" + text);
+				addString(pro.translate(pro.format(userName, text)));
 			}
 		});
 
@@ -107,6 +113,9 @@ public class ServerUI extends JFrame {
 	 * @param server
 	 */
 	public void initServer(ServerThread server) {
+
+		pro = new Protocol();
+		
 		this.server = server;
 		breader = server.getReader();
 		bwriter = server.getwriter();
@@ -119,7 +128,13 @@ public class ServerUI extends JFrame {
 				// TODO Auto-generated method stub
 				while (true) {
 					try {
-						addString("客户端：" + breader.readLine());
+						String result = breader.readLine();
+						addString(pro.translate(result));
+						if(result.indexOf("#list")!=-1){
+							String text = "1.杭州\n2.神农架\n3.天涯海角\n4.张家界";
+							bwriter.write(pro.format(userName, text));
+							bwriter.flush();
+						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						break;
